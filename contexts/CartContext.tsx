@@ -1,7 +1,10 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react'
 import type { Product, CartItem } from '@/types'
+
+// Default weight for items without specified weight (kg)
+const DEFAULT_ITEM_WEIGHT = 0.3
 
 interface CartContextType {
   items: CartItem[]
@@ -11,6 +14,7 @@ interface CartContextType {
   clearCart: () => void
   total: number
   itemCount: number
+  expectedWeight: number // Calculated weight based on cart items
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -58,6 +62,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
 
+  // Calculate expected weight from cart items
+  const expectedWeight = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const itemWeight = item.weight ?? DEFAULT_ITEM_WEIGHT
+      return sum + itemWeight * item.quantity
+    }, 0)
+  }, [items])
+
   return (
     <CartContext.Provider
       value={{
@@ -68,6 +80,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         total,
         itemCount,
+        expectedWeight,
       }}
     >
       {children}

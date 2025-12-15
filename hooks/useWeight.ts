@@ -4,8 +4,18 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSocket } from './useSocket'
 import type { WeightData, WeightStats } from '@/types'
 
+// Sanitize weight: ensure positive only (no cap - let actual reading show)
+function sanitizeWeight(rawWeight: number | null | undefined): number | null {
+  if (rawWeight === null || rawWeight === undefined || isNaN(rawWeight)) {
+    return null
+  }
+  // Only ensure positive, no cap
+  return Math.abs(rawWeight)
+}
+
 interface UseWeightReturn {
   weight: number | null
+  rawWeight: number | null // Original value from sensor
   isLoading: boolean
   isError: boolean
   error: string | null
@@ -18,6 +28,7 @@ interface UseWeightReturn {
 
 export function useWeight(): UseWeightReturn {
   const { isConnected, subscribe } = useSocket()
+  const [rawWeight, setRawWeight] = useState<number | null>(null)
   const [weight, setWeight] = useState<number | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [isSensorResponding, setIsSensorResponding] = useState(false)
@@ -43,33 +54,38 @@ export function useWeight(): UseWeightReturn {
   // Subscribe to weight updates
   useEffect(() => {
     const unsubscribe = subscribe<WeightData>('weight:update', (data) => {
-      setWeight(data.weight)
+      const raw = data.weight
+      const sanitized = sanitizeWeight(raw)
+
+      setRawWeight(raw ?? null)
+      setWeight(sanitized)
       setLastUpdated(new Date(data.timestamp))
       setIsSensorResponding(true)
       setIsLoading(false)
       setIsError(false)
       setError(null)
 
-      // Update stats
-      setStats((prev) => {
-        const newWeight = data.weight
-        if (!prev) {
-          return {
-            count: 1,
-            average: newWeight,
-            min: newWeight,
-            max: newWeight,
-            latest: newWeight,
+      // Update stats with sanitized weight (only if valid)
+      if (sanitized !== null) {
+        setStats((prev) => {
+          if (!prev) {
+            return {
+              count: 1,
+              average: sanitized,
+              min: sanitized,
+              max: sanitized,
+              latest: sanitized,
+            }
           }
-        }
-        return {
-          count: prev.count + 1,
-          average: (prev.average * prev.count + newWeight) / (prev.count + 1),
-          min: Math.min(prev.min, newWeight),
-          max: Math.max(prev.max, newWeight),
-          latest: newWeight,
-        }
-      })
+          return {
+            count: prev.count + 1,
+            average: (prev.average * prev.count + sanitized) / (prev.count + 1),
+            min: Math.min(prev.min, sanitized),
+            max: Math.max(prev.max, sanitized),
+            latest: sanitized,
+          }
+        })
+      }
     })
 
     return unsubscribe
@@ -95,7 +111,11 @@ export function useWeight(): UseWeightReturn {
 
       if (data.success && data.data && data.data.length > 0) {
         const latest = data.data[0]
-        setWeight(latest.weight)
+        const raw = latest.weight
+        const sanitized = sanitizeWeight(raw)
+
+        setRawWeight(raw)
+        setWeight(sanitized)
         setLastUpdated(new Date(latest.timestamp))
         setIsSensorResponding(true)
       }
@@ -109,6 +129,7 @@ export function useWeight(): UseWeightReturn {
 
   return {
     weight,
+    rawWeight,
     isLoading,
     isError,
     error,

@@ -410,8 +410,35 @@ export function SupermarketMap({
     return () => container.removeEventListener('wheel', handleWheel)
   }, [handleWheel])
 
-  const handlePinch = useCallback((e: React.TouchEvent) => {
-    if (e.touches && e.touches.length === 2) {
+  // Native touch handlers for proper preventDefault support
+  const handleNativeTouchStart = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0]
+      dragStartRef.current = { x: touch.clientX, y: touch.clientY }
+      setIsDragging(false)
+    }
+  }, [])
+
+  const handleNativeTouchMove = useCallback((e: TouchEvent) => {
+    e.preventDefault() // Prevent browser scrolling/zooming
+
+    if (e.touches.length === 1) {
+      // Single finger - rotation
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - dragStartRef.current.x
+      const deltaY = touch.clientY - dragStartRef.current.y
+
+      if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        setIsDragging(true)
+      }
+
+      cameraAngleRef.current.theta += deltaX * 0.01
+      cameraAngleRef.current.phi = Math.max(0.3, Math.min(Math.PI / 2.2, cameraAngleRef.current.phi - deltaY * 0.01))
+
+      dragStartRef.current = { x: touch.clientX, y: touch.clientY }
+      updateCamera()
+    } else if (e.touches.length === 2) {
+      // Two fingers - pinch zoom
       const dx = e.touches[0].clientX - e.touches[1].clientX
       const dy = e.touches[0].clientY - e.touches[1].clientY
       const distance = Math.sqrt(dx * dx + dy * dy)
@@ -428,9 +455,40 @@ export function SupermarketMap({
     }
   }, [updateCamera])
 
-  const handleTouchEnd = useCallback(() => {
+  const handleNativeTouchEnd = useCallback((e: TouchEvent) => {
     lastPinchDistanceRef.current = null
-  }, [])
+
+    if (!isDragging && e.changedTouches.length > 0) {
+      const touch = e.changedTouches[0]
+      const sectionId = getIntersectedSection(touch.clientX, touch.clientY)
+      if (sectionId) {
+        const section = SECTIONS.find(s => s.id === sectionId) || null
+        if (onSectionSelect) {
+          onSectionSelect(section)
+        } else {
+          setInternalSelectedSection(section)
+        }
+      }
+    }
+    setIsDragging(false)
+  }, [isDragging, getIntersectedSection, onSectionSelect])
+
+  // Attach native touch listeners with passive: false to allow preventDefault
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    container.addEventListener('touchstart', handleNativeTouchStart, { passive: false })
+    container.addEventListener('touchmove', handleNativeTouchMove, { passive: false })
+    container.addEventListener('touchend', handleNativeTouchEnd, { passive: false })
+
+    return () => {
+      container.removeEventListener('touchstart', handleNativeTouchStart)
+      container.removeEventListener('touchmove', handleNativeTouchMove)
+      container.removeEventListener('touchend', handleNativeTouchEnd)
+    }
+  }, [handleNativeTouchStart, handleNativeTouchMove, handleNativeTouchEnd])
+
 
   const handleSectionButtonClick = useCallback((section: Section) => {
     if (onSectionSelect) {
@@ -461,15 +519,8 @@ export function SupermarketMap({
           setHoveredSection(null)
           onHoverChange?.(null)
         }}
-        onTouchStart={handlePointerDown}
-        onTouchMove={(e) => {
-          handlePointerMove(e)
-          handlePinch(e)
-        }}
-        onTouchEnd={(e) => {
-          handlePointerUp(e)
-          handleTouchEnd()
-        }}
+        // Touch events are handled via native addEventListener with { passive: false }
+        // to allow preventDefault() and block browser's default touch behaviors
       />
 
       {/* Section Labels */}

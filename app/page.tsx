@@ -1,22 +1,41 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { ProductCard } from '@/components/ProductCard'
 import { WeightDisplay } from '@/components/WeightDisplay'
 import { CartView } from '@/components/CartView'
 import { MapPanel } from '@/components/map'
+import { PaymentSuccessOverlay } from '@/components/PaymentSuccessOverlay'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useBarcodeToCart } from '@/hooks/useBarcodeToCart'
+import { useNFCPayment } from '@/hooks/useNFCPayment'
 import { useLanguage } from '@/contexts/LanguageContext'
-import type { Product } from '@/types'
+import type { Product, NFCPaymentData } from '@/types'
 
 export default function ShoppingPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
   const [isLoading, setIsLoading] = useState(true)
+  const [activePayment, setActivePayment] = useState<NFCPaymentData | null>(null)
   const { language, setLanguage, t } = useLanguage()
+
+  // Handle NFC payment detection
+  const handlePaymentDetected = useCallback((payment: NFCPaymentData) => {
+    console.log('[Page] NFC Payment detected:', payment.cardUID)
+    setActivePayment(payment)
+  }, [])
+
+  const handlePaymentClose = useCallback(() => {
+    setActivePayment(null)
+  }, [])
+
+  // Enable NFC payment detection
+  useNFCPayment({
+    enabled: true,
+    onPaymentDetected: handlePaymentDetected,
+  })
 
   // Enable barcode to cart functionality
   useBarcodeToCart({
@@ -148,6 +167,13 @@ export default function ShoppingPage() {
           </div>
         </div>
       </footer>
+
+      {/* NFC Payment Success Overlay */}
+      <PaymentSuccessOverlay
+        payment={activePayment}
+        onClose={handlePaymentClose}
+        autoCloseDelay={5000}
+      />
     </div>
   )
 }
