@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ProductCard } from '@/components/ProductCard'
 import { WeightDisplay } from '@/components/WeightDisplay'
 import { CartView } from '@/components/CartView'
+import { MapPanel } from '@/components/map'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useBarcodeToCart } from '@/hooks/useBarcodeToCart'
@@ -82,12 +83,17 @@ export default function ShoppingPage() {
         </div>
       </header>
 
-      <main className="container px-4 py-6">
+      {/* Fixed Cart - Top Right */}
+      <div className="hidden lg:block fixed top-20 right-4 z-40 w-80 max-h-[calc(100vh-6rem)] overflow-auto">
+        <CartView />
+      </div>
+
+      <main className="container px-4 py-6 lg:pr-[22rem]">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Sidebar - Sensor Status */}
           <div className="lg:col-span-1 space-y-6">
             <WeightDisplay />
-            <CartView />
+            <MapPanel />
           </div>
 
           {/* Main Content - Products */}
