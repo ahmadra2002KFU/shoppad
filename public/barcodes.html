@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopPad Test Barcodes</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://unpkg.com/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .instructions {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #666;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .barcode-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .product-name {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    .product-price {
+      color: #28a745;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .barcode-number {
+      font-family: monospace;
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    svg {
+      max-width: 100%;
+    }
+    @media print {
+      body {
+        background: white;
+        padding: 10px;
+      }
+      .instructions {
+        display: none;
+      }
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .barcode-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        padding: 10px;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>ShopPad Test Barcodes</h1>
+  <p class="instructions">Print this page (Ctrl+P) and cut out the barcodes for testing with the GM65 scanner.</p>
+
+  <div class="grid">
+    <div class="barcode-card">
+      <div class="product-name">Fresh Tomatoes</div>
+      <div class="product-price">11.25 SAR</div>
+      <svg id="barcode1"></svg>
+      <div class="barcode-number">1234567890123</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Organic Potatoes</div>
+      <div class="product-price">13.12 SAR</div>
+      <svg id="barcode2"></svg>
+      <div class="barcode-number">1234567890124</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Red Apples</div>
+      <div class="product-price">18.75 SAR</div>
+      <svg id="barcode3"></svg>
+      <div class="barcode-number">1234567890125</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Fresh Bananas</div>
+      <div class="product-price">9.50 SAR</div>
+      <svg id="barcode4"></svg>
+      <div class="barcode-number">1234567890126</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Fresh Carrots</div>
+      <div class="product-price">8.75 SAR</div>
+      <svg id="barcode5"></svg>
+      <div class="barcode-number">1234567890127</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Fresh Milk</div>
+      <div class="product-price">15.99 SAR</div>
+      <svg id="barcode6"></svg>
+      <div class="barcode-number">2234567890123</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Fresh Bread</div>
+      <div class="product-price">7.50 SAR</div>
+      <svg id="barcode7"></svg>
+      <div class="barcode-number">2234567890124</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Cheese Selection</div>
+      <div class="product-price">32.99 SAR</div>
+      <svg id="barcode8"></svg>
+      <div class="barcode-number">2234567890125</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Orange Juice</div>
+      <div class="product-price">12.50 SAR</div>
+      <svg id="barcode9"></svg>
+      <div class="barcode-number">3234567890123</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Pasta</div>
+      <div class="product-price">14.25 SAR</div>
+      <svg id="barcode10"></svg>
+      <div class="barcode-number">4234567890123</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">White Rice</div>
+      <div class="product-price">28.99 SAR</div>
+      <svg id="barcode11"></svg>
+      <div class="barcode-number">4234567890124</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Olive Oil</div>
+      <div class="product-price">45.00 SAR</div>
+      <svg id="barcode12"></svg>
+      <div class="barcode-number">4234567890125</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Cleaning Supplies</div>
+      <div class="product-price">22.50 SAR</div>
+      <svg id="barcode13"></svg>
+      <div class="barcode-number">5234567890123</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Tissue Paper</div>
+      <div class="product-price">18.99 SAR</div>
+      <svg id="barcode14"></svg>
+      <div class="barcode-number">5234567890124</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Fresh Chicken</div>
+      <div class="product-price">42.00 SAR</div>
+      <svg id="barcode15"></svg>
+      <div class="barcode-number">7234567890123</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Cotton T-Shirt</div>
+      <div class="product-price">75.00 SAR</div>
+      <svg id="barcode16"></svg>
+      <div class="barcode-number">8234567890123</div>
+    </div>
+
+    <div class="barcode-card">
+      <div class="product-name">Cookware Set</div>
+      <div class="product-price">299.99 SAR</div>
+      <svg id="barcode17"></svg>
+      <div class="barcode-number">9234567890123</div>
+    </div>
+  </div>
+
+  <script>
+    // Generate all barcodes using CODE128 format
+    const barcodes = [
+      { id: "barcode1", code: "1234567890123" },
+      { id: "barcode2", code: "1234567890124" },
+      { id: "barcode3", code: "1234567890125" },
+      { id: "barcode4", code: "1234567890126" },
+      { id: "barcode5", code: "1234567890127" },
+      { id: "barcode6", code: "2234567890123" },
+      { id: "barcode7", code: "2234567890124" },
+      { id: "barcode8", code: "2234567890125" },
+      { id: "barcode9", code: "3234567890123" },
+      { id: "barcode10", code: "4234567890123" },
+      { id: "barcode11", code: "4234567890124" },
+      { id: "barcode12", code: "4234567890125" },
+      { id: "barcode13", code: "5234567890123" },
+      { id: "barcode14", code: "5234567890124" },
+      { id: "barcode15", code: "7234567890123" },
+      { id: "barcode16", code: "8234567890123" },
+      { id: "barcode17", code: "9234567890123" },
+    ];
+
+    // Wait for library to load
+    function generateBarcodes() {
+      if (typeof JsBarcode === 'undefined') {
+        console.error('JsBarcode not loaded, retrying...');
+        setTimeout(generateBarcodes, 500);
+        return;
+      }
+
+      barcodes.forEach(({ id, code }) => {
+        try {
+          JsBarcode(`#${id}`, code, {
+            format: "CODE128",
+            width: 2,
+            height: 60,
+            displayValue: false,
+            margin: 10
+          });
+        } catch(e) {
+          console.error(`Error generating barcode ${id}:`, e);
+        }
+      });
+    }
+
+    // Try immediately and also on load
+    if (document.readyState === 'complete') {
+      generateBarcodes();
+    } else {
+      window.addEventListener('load', generateBarcodes);
+    }
+  </script>
+</body>
+</html>
