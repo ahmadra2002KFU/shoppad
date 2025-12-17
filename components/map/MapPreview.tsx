@@ -4,9 +4,14 @@ import { Map, Maximize2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import type { MapPreviewProps } from '@/types/map'
 
-export function MapPreview({ onExpand, className }: MapPreviewProps) {
+interface MapPreviewProps {
+  onExpand: () => void
+  className?: string
+  isCompact?: boolean
+}
+
+export function MapPreview({ onExpand, className, isCompact = false }: MapPreviewProps) {
   return (
     <Card
       className={cn(
@@ -15,7 +20,7 @@ export function MapPreview({ onExpand, className }: MapPreviewProps) {
       )}
       onClick={onExpand}
     >
-      <CardHeader className="pb-2">
+      <CardHeader className={cn("pb-2", isCompact && "py-2")}>
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
             <Map className="w-4 h-4" />
@@ -24,7 +29,7 @@ export function MapPreview({ onExpand, className }: MapPreviewProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-10 w-10 opacity-60 group-hover:opacity-100 transition-opacity"
+            className={cn("opacity-60 group-hover:opacity-100 transition-opacity", isCompact ? "h-8 w-8" : "h-10 w-10")}
             onClick={(e) => {
               e.stopPropagation()
               onExpand()
@@ -35,9 +40,9 @@ export function MapPreview({ onExpand, className }: MapPreviewProps) {
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-3">
+      <CardContent className={cn("pb-3", isCompact && "py-2")}>
         {/* Simplified store layout preview */}
-        <div className="h-[120px] bg-muted rounded-lg flex items-center justify-center relative overflow-hidden">
+        <div className={cn("bg-muted rounded-lg flex items-center justify-center relative overflow-hidden", isCompact ? "h-[70px]" : "h-[120px]")}>
           <div className="grid grid-cols-3 gap-1.5 p-3 w-full h-full">
             {/* Row 1 */}
             <div

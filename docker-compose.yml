@@ -1,0 +1,23 @@
+services:
+  shoppad:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./data/shop.db
+      - PORT=3000
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SOCKET_URL=
+    volumes:
+      - shoppad-data:/app/prisma/data
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://shoppad:3000
+    depends_on:
+      - shoppad
+    restart: unless-stopped
+
+volumes:
+  shoppad-data:

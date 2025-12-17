@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { CheckCircle2, CreditCard, X } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '@/components/ui/button'
 import type { NFCPaymentData } from '@/types'
 
@@ -174,6 +175,26 @@ export function PaymentSuccessOverlay({
                   <span className="text-sm text-white/70">Transaction ID</span>
                   <span className="font-mono text-sm">#{payment.paymentId}</span>
                 </div>
+              </motion.div>
+
+              {/* QR Code with RFID Tag ID */}
+              <motion.div
+                className="bg-white rounded-2xl p-4 mt-4"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.7, type: 'spring', bounce: 0.3 }}
+              >
+                <QRCodeSVG
+                  value={payment.cardUID}
+                  size={120}
+                  level="H"
+                  className="mx-auto"
+                  bgColor="transparent"
+                  fgColor="#059669"
+                />
+                <p className="text-xs text-emerald-700 mt-2 font-medium">
+                  Scan for receipt
+                </p>
               </motion.div>
 
               {/* Auto-close indicator */}

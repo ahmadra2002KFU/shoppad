@@ -11,7 +11,11 @@ import { useNFCPayment } from '@/hooks/useNFCPayment'
 import { cn } from '@/lib/utils'
 import type { NFCPaymentData } from '@/types'
 
-export function CartView() {
+interface CartViewProps {
+  isCompact?: boolean
+}
+
+export function CartView({ isCompact = false }: CartViewProps) {
   const { items, removeFromCart, updateQuantity, clearCart, total, itemCount } =
     useCart()
   const { t } = useLanguage()
@@ -57,6 +61,78 @@ export function CartView() {
     )
   }
 
+  // Compact horizontal layout for landscape tablet
+  if (isCompact) {
+    return (
+      <div className="flex items-center gap-4 p-2 bg-card rounded-lg border">
+        {/* Cart Icon & Count */}
+        <div className="flex items-center gap-2 shrink-0">
+          <ShoppingCart className="w-5 h-5" />
+          <Badge variant="secondary">{itemCount}</Badge>
+        </div>
+
+        {/* Items Preview - Scrollable horizontal */}
+        {items.length === 0 ? (
+          <span className="text-sm text-muted-foreground">{t('emptyCart')}</span>
+        ) : (
+          <div className="flex-1 flex items-center gap-2 overflow-x-auto">
+            {items.slice(0, 5).map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded text-sm whitespace-nowrap shrink-0"
+              >
+                <span className="max-w-[80px] truncate">{item.name}</span>
+                <span className="text-muted-foreground">×{item.quantity}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 text-red-500 hover:text-red-600"
+                  onClick={() => removeFromCart(item.id)}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            ))}
+            {items.length > 5 && (
+              <span className="text-xs text-muted-foreground shrink-0">+{items.length - 5} more</span>
+            )}
+          </div>
+        )}
+
+        {/* Total & NFC */}
+        {items.length > 0 && (
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">{t('total')}</p>
+              <p className="font-semibold tabular-nums">
+                {total.toFixed(2)} {t('sar')}
+              </p>
+            </div>
+            <div
+              className={cn(
+                'flex items-center gap-1 px-2 py-1.5 rounded border-2 border-dashed text-sm',
+                isNFCReady
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-300 bg-gray-50 text-gray-500'
+              )}
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>{isNFCReady ? 'Tap to Pay' : 'NFC Off'}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearCart}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Full vertical layout for desktop/portrait
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
