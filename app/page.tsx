@@ -6,6 +6,8 @@ import { WeightDisplay } from '@/components/WeightDisplay'
 import { CartView } from '@/components/CartView'
 import { MapPanel } from '@/components/map'
 import { PaymentSuccessOverlay } from '@/components/PaymentSuccessOverlay'
+import { ReceiptQRPanel } from '@/components/ReceiptQRPanel'
+import { useCart } from '@/contexts/CartContext'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useBarcodeToCart } from '@/hooks/useBarcodeToCart'
@@ -17,11 +19,14 @@ import type { Product, NFCPaymentData } from '@/types'
 export default function ShoppingPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<string[]>([])
+  const [categoryTranslations, setCategoryTranslations] = useState<Record<string, string>>({})
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
   const [isLoading, setIsLoading] = useState(true)
   const [activePayment, setActivePayment] = useState<NFCPaymentData | null>(null)
-  const { language, setLanguage, t } = useLanguage()
+  const [receiptId, setReceiptId] = useState<string | null>(null)
+  const { language, setLanguage, t, isRTL } = useLanguage()
   const isLandscapeTablet = useLandscapeTablet()
+  const { isCheckoutRequested, clearCart } = useCart()
 
   // Handle NFC payment detection
   const handlePaymentDetected = useCallback((payment: NFCPaymentData) => {
@@ -30,12 +35,20 @@ export default function ShoppingPage() {
   }, [])
 
   const handlePaymentClose = useCallback(() => {
+    if (activePayment) {
+      setReceiptId(activePayment.cardUID)
+    }
     setActivePayment(null)
+    clearCart()
+  }, [activePayment, clearCart])
+
+  const handleReceiptExpire = useCallback(() => {
+    setReceiptId(null)
   }, [])
 
-  // Enable NFC payment detection
+  // Enable NFC payment detection only when checkout is requested
   useNFCPayment({
-    enabled: true,
+    enabled: isCheckoutRequested,
     onPaymentDetected: handlePaymentDetected,
   })
 
@@ -60,6 +73,7 @@ export default function ShoppingPage() {
         if (data.success) {
           setProducts(data.data)
           setCategories(['All', ...data.categories])
+          setCategoryTranslations(data.categoryTranslations || {})
         }
       } catch (error) {
         console.error('Failed to fetch products:', error)
@@ -82,7 +96,7 @@ export default function ShoppingPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className={`container flex items-center justify-between px-4 ${isLandscapeTablet ? 'h-12' : 'h-16'}`}>
-          <h1 className={`font-bold text-primary ${isLandscapeTablet ? 'text-xl' : 'text-2xl'}`}>ShopPad</h1>
+          <h1 className={`font-bold text-primary ${isLandscapeTablet ? 'text-xl' : 'text-2xl'}`}>{t('appTitle')}</h1>
 
           {/* Language Toggle */}
           <div className="flex items-center gap-2">
@@ -108,18 +122,34 @@ export default function ShoppingPage() {
       {isLandscapeTablet ? (
         /* Landscape Tablet: Horizontal cart strip below header */
         <div className="sticky top-12 z-40 bg-background border-b">
-          <div className="container px-4 py-2">
-            <CartView isCompact />
+          <div className="container px-4 py-2 flex items-start gap-4">
+            <div className="flex-1">
+              <CartView isCompact />
+            </div>
+            {receiptId && (
+              <div className="shrink-0 w-48">
+                <ReceiptQRPanel
+                  receiptId={receiptId}
+                  onExpire={handleReceiptExpire}
+                />
+              </div>
+            )}
           </div>
         </div>
       ) : (
-        /* Desktop: Fixed cart on right */
-        <div className="hidden md:block fixed top-20 right-4 z-40 w-80 max-h-[calc(100vh-6rem)] overflow-auto">
+        /* Desktop: Fixed cart on right (left in RTL) */
+        <div className={`hidden md:block fixed top-20 z-40 w-80 max-h-[calc(100vh-6rem)] overflow-auto space-y-4 ${isRTL ? 'left-4' : 'right-4'}`}>
           <CartView />
+          {receiptId && (
+            <ReceiptQRPanel
+              receiptId={receiptId}
+              onExpire={handleReceiptExpire}
+            />
+          )}
         </div>
       )}
 
-      <main className={`container px-4 ${isLandscapeTablet ? 'py-3 pr-4' : 'py-6 md:pr-[22rem]'}`}>
+      <main className={`container px-4 ${isLandscapeTablet ? 'py-3' : `py-6 ${isRTL ? 'md:pl-[22rem]' : 'md:pr-[22rem]'}`}`}>
         <div className={`grid gap-4 ${isLandscapeTablet ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-4 gap-6'}`}>
 
           {/* Status Panel - Horizontal in landscape, vertical sidebar otherwise */}
@@ -131,8 +161,14 @@ export default function ShoppingPage() {
             <MapPanel isCompact={isLandscapeTablet} />
             {/* Mobile Cart - shown only on small screens, not in landscape tablet */}
             {!isLandscapeTablet && (
-              <div className="md:hidden">
+              <div className="md:hidden space-y-4">
                 <CartView />
+                {receiptId && (
+                  <ReceiptQRPanel
+                    receiptId={receiptId}
+                    onExpire={handleReceiptExpire}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -141,16 +177,22 @@ export default function ShoppingPage() {
           <div className={isLandscapeTablet ? '' : 'md:col-span-3'}>
             {/* Category Filter */}
             <div className={`flex flex-wrap gap-2 ${isLandscapeTablet ? 'mb-3' : 'mb-6'}`}>
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Button>
-              ))}
+              {categories.map((category) => {
+                // Get display name based on language
+                const displayName = category === 'All'
+                  ? t('allCategories')
+                  : (isRTL ? categoryTranslations[category] || category : category)
+                return (
+                  <Button
+                    key={category}
+                    variant={selectedCategory === category ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {displayName}
+                  </Button>
+                )
+              })}
             </div>
 
             {/* Products Grid */}
@@ -182,11 +224,11 @@ export default function ShoppingPage() {
       {!isLandscapeTablet && (
         <footer className="border-t py-4 mt-8">
           <div className="container px-4 text-center text-sm text-muted-foreground">
-            <p>ShopPad v5.0 - Smart Shopping with ESP32 Integration</p>
+            <p>{t('appVersion')}</p>
             <div className="mt-1 flex justify-center gap-2">
-              <Badge variant="outline">WebSocket</Badge>
-              <Badge variant="outline">Real-time</Badge>
-              <Badge variant="outline">NFC Payments</Badge>
+              <Badge variant="outline">{t('webSocket')}</Badge>
+              <Badge variant="outline">{t('realTime')}</Badge>
+              <Badge variant="outline">{t('nfcPayments')}</Badge>
             </div>
           </div>
         </footer>

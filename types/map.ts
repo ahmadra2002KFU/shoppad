@@ -22,7 +22,6 @@ export interface SupermarketMapProps {
   selectedSection?: Section | null
   hoveredSection?: string | null
   onHoverChange?: (sectionId: string | null) => void
-  showSectionButtons?: boolean
   showZoomControls?: boolean
   className?: string
 }

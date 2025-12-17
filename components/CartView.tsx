@@ -1,6 +1,6 @@
 'use client'
 
-import { ShoppingCart, Trash2, Plus, Minus, CreditCard, CheckCircle } from 'lucide-react'
+import { ShoppingCart, Trash2, Plus, Minus, CreditCard, CheckCircle, Newspaper } from 'lucide-react'
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { useCart } from '@/contexts/CartContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useNFCPayment } from '@/hooks/useNFCPayment'
+import { MagazineModal } from '@/components/magazine/MagazineModal'
 import { cn } from '@/lib/utils'
 import type { NFCPaymentData } from '@/types'
 
@@ -16,10 +17,11 @@ interface CartViewProps {
 }
 
 export function CartView({ isCompact = false }: CartViewProps) {
-  const { items, removeFromCart, updateQuantity, clearCart, total, itemCount } =
+  const { items, removeFromCart, updateQuantity, clearCart, total, itemCount, isCheckoutRequested, requestCheckout, cancelCheckout } =
     useCart()
-  const { t } = useLanguage()
+  const { t, isRTL } = useLanguage()
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
+  const [isMagazineOpen, setIsMagazineOpen] = useState(false)
 
   const handlePaymentDetected = useCallback(
     (payment: NFCPaymentData) => {
@@ -39,7 +41,7 @@ export function CartView({ isCompact = false }: CartViewProps) {
 
   const { paymentData, acknowledge, isNFCReady } = useNFCPayment({
     onPaymentDetected: handlePaymentDetected,
-    enabled: itemCount > 0,
+    enabled: itemCount > 0 && isCheckoutRequested,
   })
 
   // Acknowledge payment after processing
@@ -94,12 +96,12 @@ export function CartView({ isCompact = false }: CartViewProps) {
               </div>
             ))}
             {items.length > 5 && (
-              <span className="text-xs text-muted-foreground shrink-0">+{items.length - 5} more</span>
+              <span className="text-xs text-muted-foreground shrink-0">+{items.length - 5} {t('more')}</span>
             )}
           </div>
         )}
 
-        {/* Total & NFC */}
+        {/* Total & Checkout */}
         {items.length > 0 && (
           <div className="flex items-center gap-3 shrink-0">
             <div className="text-right">
@@ -108,26 +110,54 @@ export function CartView({ isCompact = false }: CartViewProps) {
                 {total.toFixed(2)} {t('sar')}
               </p>
             </div>
-            <div
-              className={cn(
-                'flex items-center gap-1 px-2 py-1.5 rounded border-2 border-dashed text-sm',
-                isNFCReady
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-300 bg-gray-50 text-gray-500'
-              )}
-            >
-              <CreditCard className="w-4 h-4" />
-              <span>{isNFCReady ? 'Tap to Pay' : 'NFC Off'}</span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearCart}
-            >
-              Clear
-            </Button>
+            {!isCheckoutRequested ? (
+              <Button
+                size="sm"
+                onClick={requestCheckout}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {t('checkout')}
+              </Button>
+            ) : (
+              <>
+                <div
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-1.5 rounded border-2 border-dashed text-sm animate-pulse',
+                    isNFCReady
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-yellow-500 bg-yellow-50 text-yellow-600'
+                  )}
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>{isNFCReady ? t('tapCard') : t('waiting')}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={cancelCheckout}
+                >
+                  {t('cancelCheckout')}
+                </Button>
+              </>
+            )}
           </div>
         )}
+
+        {/* Magazine Button - Always visible */}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setIsMagazineOpen(true)}
+          className="shrink-0 border-purple-300 text-purple-600 hover:bg-purple-50"
+        >
+          <Newspaper className="w-4 h-4" />
+        </Button>
+
+        {/* Magazine Modal */}
+        <MagazineModal
+          open={isMagazineOpen}
+          onOpenChange={setIsMagazineOpen}
+        />
       </div>
     )
   }
@@ -141,7 +171,7 @@ export function CartView({ isCompact = false }: CartViewProps) {
             <ShoppingCart className="w-5 h-5" />
             {t('cart')}
           </span>
-          <Badge variant="secondary">{itemCount} items</Badge>
+          <Badge variant="secondary">{itemCount} {t('items')}</Badge>
         </CardTitle>
       </CardHeader>
 
@@ -165,7 +195,7 @@ export function CartView({ isCompact = false }: CartViewProps) {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 ml-4">
+                <div className={`flex items-center gap-2 ${isRTL ? 'mr-4' : 'ml-4'}`}>
                   <Button
                     variant="outline"
                     size="icon"
@@ -204,7 +234,7 @@ export function CartView({ isCompact = false }: CartViewProps) {
       </CardContent>
 
       {items.length > 0 && (
-        <CardFooter className="flex flex-col gap-4">
+        <CardFooter className="flex flex-col gap-4 pb-2">
           <div className="w-full flex justify-between items-center text-lg font-semibold">
             <span>{t('total')}</span>
             <span>
@@ -212,32 +242,62 @@ export function CartView({ isCompact = false }: CartViewProps) {
             </span>
           </div>
 
-          <div
-            className={cn(
-              'w-full p-4 rounded-lg border-2 border-dashed text-center transition-colors',
-              isNFCReady
-                ? 'border-green-500 bg-green-50 text-green-700'
-                : 'border-gray-300 bg-gray-50 text-gray-500'
-            )}
-          >
-            <CreditCard className="w-8 h-8 mx-auto mb-2" />
-            <p className="font-medium">
-              {isNFCReady ? t('tapCard') : 'NFC Offline'}
-            </p>
-            <p className="text-sm opacity-75">
-              {isNFCReady ? 'Waiting for NFC card...' : 'Connect to pay'}
-            </p>
-          </div>
+          {!isCheckoutRequested ? (
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              size="lg"
+              onClick={requestCheckout}
+            >
+              {t('checkout')}
+            </Button>
+          ) : (
+            <>
+              <div
+                className={cn(
+                  'w-full p-4 rounded-lg border-2 border-dashed text-center transition-colors animate-pulse',
+                  isNFCReady
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-yellow-500 bg-yellow-50 text-yellow-600'
+                )}
+              >
+                <CreditCard className="w-8 h-8 mx-auto mb-2" />
+                <p className="font-medium">
+                  {isNFCReady ? t('tapCard') : t('waiting')}
+                </p>
+                <p className="text-sm opacity-75">
+                  {isNFCReady ? t('waitingForPayment') : t('waiting')}
+                </p>
+              </div>
 
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={clearCart}
-          >
-            Clear Cart
-          </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={cancelCheckout}
+              >
+                {t('cancelCheckout')}
+              </Button>
+            </>
+          )}
         </CardFooter>
       )}
+
+      {/* Magazine Button - Always visible */}
+      <CardFooter className="pt-2">
+        <Button
+          variant="outline"
+          className="w-full border-purple-300 text-purple-600 hover:bg-purple-50"
+          onClick={() => setIsMagazineOpen(true)}
+        >
+          <Newspaper className="w-4 h-4 mr-2" />
+          {t('magazine')}
+        </Button>
+      </CardFooter>
+
+      {/* Magazine Modal */}
+      <MagazineModal
+        open={isMagazineOpen}
+        onOpenChange={setIsMagazineOpen}
+      />
     </Card>
   )
 }

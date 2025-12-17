@@ -1,11 +1,14 @@
 export interface Product {
   id: string
   name: string
+  nameAr?: string
   category: string
+  categoryAr?: string
   price: number
   barcode?: string
   weight?: number
   image: string
+  soldOut?: boolean
 }
 
 export interface CartItem extends Product {

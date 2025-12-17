@@ -4,6 +4,7 @@ import { Map, Maximize2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface MapPreviewProps {
   onExpand: () => void
@@ -12,6 +13,8 @@ interface MapPreviewProps {
 }
 
 export function MapPreview({ onExpand, className, isCompact = false }: MapPreviewProps) {
+  const { t } = useLanguage()
+
   return (
     <Card
       className={cn(
@@ -24,7 +27,7 @@ export function MapPreview({ onExpand, className, isCompact = false }: MapPrevie
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
             <Map className="w-4 h-4" />
-            Store Map
+            {t('storeMap')}
           </span>
           <Button
             variant="ghost"
@@ -80,7 +83,7 @@ export function MapPreview({ onExpand, className, isCompact = false }: MapPrevie
           {/* Overlay with tap instruction */}
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
             <span className="text-xs text-white font-medium px-3 py-1.5 bg-black/50 rounded-full">
-              Tap to explore
+              {t('tapToExplore')}
             </span>
           </div>
         </div>

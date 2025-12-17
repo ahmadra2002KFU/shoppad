@@ -15,12 +15,17 @@ interface CartContextType {
   total: number
   itemCount: number
   expectedWeight: number // Calculated weight based on cart items
+  // Checkout flow
+  isCheckoutRequested: boolean
+  requestCheckout: () => void
+  cancelCheckout: () => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
+  const [isCheckoutRequested, setIsCheckoutRequested] = useState(false)
 
   const addToCart = useCallback((product: Product) => {
     setItems((prevItems) => {
@@ -57,6 +62,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => {
     setItems([])
+    setIsCheckoutRequested(false)
+  }, [])
+
+  const requestCheckout = useCallback(() => {
+    if (items.length > 0) {
+      setIsCheckoutRequested(true)
+    }
+  }, [items.length])
+
+  const cancelCheckout = useCallback(() => {
+    setIsCheckoutRequested(false)
   }, [])
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -81,6 +97,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         total,
         itemCount,
         expectedWeight,
+        isCheckoutRequested,
+        requestCheckout,
+        cancelCheckout,
       }}
     >
       {children}

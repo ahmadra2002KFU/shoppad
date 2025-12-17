@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { useWeight } from '@/hooks/useWeight'
 import { useCart } from '@/contexts/CartContext'
 import { useSocketContext } from '@/contexts/SocketContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { cn } from '@/lib/utils'
 
 // Tolerance for weight comparison (kg)
@@ -28,6 +29,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
 
   const { expectedWeight, itemCount } = useCart()
   const { connectionError } = useSocketContext()
+  const { t } = useLanguage()
 
   // Calculate weight difference and status
   const weightDiff = weight !== null ? weight - expectedWeight : null
@@ -48,7 +50,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
           <CardTitle className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-2">
               <Scale className="w-4 h-4" />
-              Status
+              {t('status')}
             </span>
             <Button
               variant="ghost"
@@ -72,7 +74,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
           )}>
             {/* Actual Weight */}
             <div className="text-center">
-              <p className="text-[10px] text-muted-foreground uppercase">Actual</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t('actual')}</p>
               <p className={cn(
                 "text-xl font-bold tabular-nums leading-tight",
                 isWeightMatching && "text-green-600 dark:text-green-400",
@@ -80,7 +82,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
                 isUnderweight && "text-red-600 dark:text-red-400"
               )}>
                 {weight !== null ? weight.toFixed(2) : '--.--'}
-                <span className="text-xs font-normal ml-0.5">kg</span>
+                <span className="text-xs font-normal ml-0.5">{t('kg')}</span>
               </p>
             </div>
 
@@ -92,7 +94,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
                 isOverweight && "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
                 isUnderweight && "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
               )}>
-                {isWeightMatching && <><Check className="w-3 h-3" /> OK</>}
+                {isWeightMatching && <><Check className="w-3 h-3" /> {t('ok')}</>}
                 {isOverweight && <><TrendingUp className="w-3 h-3" /> +{weightDiff.toFixed(2)}</>}
                 {isUnderweight && <><TrendingDown className="w-3 h-3" /> {weightDiff.toFixed(2)}</>}
               </div>
@@ -100,12 +102,12 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
 
             {/* Expected Weight */}
             <div className="text-center">
-              <p className="text-[10px] text-muted-foreground uppercase">Expected</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t('expected')}</p>
               <p className="text-base font-semibold tabular-nums leading-tight">
                 {expectedWeight.toFixed(2)}
-                <span className="text-xs font-normal ml-0.5">kg</span>
+                <span className="text-xs font-normal ml-0.5">{t('kg')}</span>
               </p>
-              <p className="text-[10px] text-muted-foreground">{itemCount} items</p>
+              <p className="text-[10px] text-muted-foreground">{itemCount} {t('items')}</p>
             </div>
           </div>
 
@@ -117,19 +119,19 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
               ) : (
                 <WifiOff className="w-3.5 h-3.5 text-red-500" />
               )}
-              <span className="text-[9px] mt-0.5">Server</span>
+              <span className="text-[9px] mt-0.5">{t('server')}</span>
             </div>
             <div className="flex flex-col items-center p-1 rounded bg-muted/50">
               <Scale className={cn("w-3.5 h-3.5", isSensorResponding ? "text-green-500" : "text-muted-foreground")} />
-              <span className="text-[9px] mt-0.5">Scale</span>
+              <span className="text-[9px] mt-0.5">{t('scale')}</span>
             </div>
             <div className="flex flex-col items-center p-1 rounded bg-muted/50">
               <CreditCard className={cn("w-3.5 h-3.5", isConnected ? "text-green-500" : "text-muted-foreground")} />
-              <span className="text-[9px] mt-0.5">NFC</span>
+              <span className="text-[9px] mt-0.5">{t('nfc')}</span>
             </div>
             <div className="flex flex-col items-center p-1 rounded bg-muted/50">
               <ScanBarcode className={cn("w-3.5 h-3.5", isConnected ? "text-green-500" : "text-muted-foreground")} />
-              <span className="text-[9px] mt-0.5">Scan</span>
+              <span className="text-[9px] mt-0.5">{t('scanLabel')}</span>
             </div>
           </div>
 
@@ -151,7 +153,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Scale className="w-5 h-5" />
-            Sensor Status
+            {t('sensorStatus')}
           </span>
           <Button
             variant="ghost"
@@ -174,7 +176,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
         )}>
           {/* Actual Weight */}
           <div className="text-center mb-3">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Actual Weight</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('actualWeight')}</p>
             <p className={cn(
               "text-4xl font-bold tabular-nums",
               isWeightMatching && "text-green-600 dark:text-green-400",
@@ -183,7 +185,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
             )}>
               {weight !== null ? weight.toFixed(2) : '--.--.'}
             </p>
-            <p className="text-sm text-muted-foreground">kg</p>
+            <p className="text-sm text-muted-foreground">{t('kg')}</p>
           </div>
 
           {/* Divider */}
@@ -192,11 +194,11 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
           {/* Expected Weight */}
           <div className="flex items-center justify-between">
             <div className="text-center flex-1">
-              <p className="text-xs text-muted-foreground">Expected</p>
+              <p className="text-xs text-muted-foreground">{t('expected')}</p>
               <p className="text-lg font-semibold tabular-nums">
-                {expectedWeight.toFixed(2)} kg
+                {expectedWeight.toFixed(2)} {t('kg')}
               </p>
-              <p className="text-xs text-muted-foreground">{itemCount} items</p>
+              <p className="text-xs text-muted-foreground">{itemCount} {t('items')}</p>
             </div>
 
             {/* Status Indicator */}
@@ -208,7 +210,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
                   isOverweight && "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
                   isUnderweight && "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
                 )}>
-                  {isWeightMatching && <><Check className="w-3 h-3" /> Match</>}
+                  {isWeightMatching && <><Check className="w-3 h-3" /> {t('match')}</>}
                   {isOverweight && <><TrendingUp className="w-3 h-3" /> +{weightDiff.toFixed(2)}</>}
                   {isUnderweight && <><TrendingDown className="w-3 h-3" /> {weightDiff.toFixed(2)}</>}
                 </div>
@@ -227,10 +229,10 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
               ) : (
                 <WifiOff className="w-4 h-4 text-red-500" />
               )}
-              <span className="text-sm">Server</span>
+              <span className="text-sm">{t('server')}</span>
             </div>
             <Badge variant={isConnected ? 'success' : 'destructive'}>
-              {isConnected ? 'Connected' : 'Disconnected'}
+              {isConnected ? t('connected') : t('disconnected')}
             </Badge>
           </div>
 
@@ -238,7 +240,7 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
           <div className="flex items-center justify-between p-2 rounded bg-muted/50">
             <div className="flex items-center gap-2">
               <Scale className="w-4 h-4" />
-              <span className="text-sm">Weight Sensor</span>
+              <span className="text-sm">{t('weightSensor')}</span>
             </div>
             <Badge
               variant={
@@ -250,10 +252,10 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
               }
             >
               {isSensorResponding
-                ? 'Active'
+                ? t('active')
                 : isConnected
-                ? 'Waiting...'
-                : 'Offline'}
+                ? t('waiting')
+                : t('offline')}
             </Badge>
           </div>
 
@@ -261,10 +263,10 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
           <div className="flex items-center justify-between p-2 rounded bg-muted/50">
             <div className="flex items-center gap-2">
               <CreditCard className="w-4 h-4" />
-              <span className="text-sm">NFC Reader</span>
+              <span className="text-sm">{t('nfcReader')}</span>
             </div>
             <Badge variant={isConnected ? 'success' : 'secondary'}>
-              {isConnected ? 'Ready' : 'Offline'}
+              {isConnected ? t('ready') : t('offline')}
             </Badge>
           </div>
 
@@ -272,17 +274,17 @@ export function WeightDisplay({ isCompact = false }: WeightDisplayProps) {
           <div className="flex items-center justify-between p-2 rounded bg-muted/50">
             <div className="flex items-center gap-2">
               <ScanBarcode className="w-4 h-4" />
-              <span className="text-sm">Barcode Scanner</span>
+              <span className="text-sm">{t('barcodeScanner')}</span>
             </div>
             <Badge variant={isConnected ? 'success' : 'secondary'}>
-              {isConnected ? 'Ready' : 'Offline'}
+              {isConnected ? t('ready') : t('offline')}
             </Badge>
           </div>
         </div>
 
         {/* Last Update */}
         <div className="text-center text-xs text-muted-foreground">
-          Last update: {formatTime(lastUpdated)}
+          {t('lastUpdate')} {formatTime(lastUpdated)}
         </div>
 
         {/* Error Message */}

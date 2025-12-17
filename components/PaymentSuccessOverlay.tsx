@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { CheckCircle2, CreditCard, X } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/contexts/LanguageContext'
 import type { NFCPaymentData } from '@/types'
 
 interface PaymentSuccessOverlayProps {
@@ -19,6 +20,7 @@ export function PaymentSuccessOverlay({
   autoCloseDelay = 5000,
 }: PaymentSuccessOverlayProps) {
   const [isVisible, setIsVisible] = useState(false)
+  const { t, isRTL } = useLanguage()
 
   useEffect(() => {
     if (payment) {
@@ -78,7 +80,7 @@ export function PaymentSuccessOverlay({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/20 rounded-full"
+              className={`absolute top-4 text-white/80 hover:text-white hover:bg-white/20 rounded-full ${isRTL ? 'left-4' : 'right-4'}`}
               onClick={handleClose}
             >
               <X className="w-5 h-5" />
@@ -140,7 +142,7 @@ export function PaymentSuccessOverlay({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                Payment Successful!
+                {t('paymentSuccessTitle')}
               </motion.h2>
 
               <motion.p
@@ -149,7 +151,7 @@ export function PaymentSuccessOverlay({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
-                Your NFC card has been processed
+                {t('nfcProcessed')}
               </motion.p>
 
               {/* Card info */}
@@ -163,8 +165,8 @@ export function PaymentSuccessOverlay({
                   <div className="bg-white/20 rounded-lg p-2">
                     <CreditCard className="w-5 h-5" />
                   </div>
-                  <div className="text-left">
-                    <p className="text-sm text-white/70">Card ID</p>
+                  <div className={isRTL ? 'text-right' : 'text-left'}>
+                    <p className="text-sm text-white/70">{t('cardId')}</p>
                     <p className="font-mono font-semibold tracking-wider">
                       {payment.cardUID}
                     </p>
@@ -172,7 +174,7 @@ export function PaymentSuccessOverlay({
                 </div>
 
                 <div className="flex justify-between items-center pt-3 border-t border-white/20">
-                  <span className="text-sm text-white/70">Transaction ID</span>
+                  <span className="text-sm text-white/70">{t('transactionId')}</span>
                   <span className="font-mono text-sm">#{payment.paymentId}</span>
                 </div>
               </motion.div>
@@ -193,7 +195,7 @@ export function PaymentSuccessOverlay({
                   fgColor="#059669"
                 />
                 <p className="text-xs text-emerald-700 mt-2 font-medium">
-                  Scan for receipt
+                  {t('scanForReceipt')}
                 </p>
               </motion.div>
 
@@ -204,7 +206,7 @@ export function PaymentSuccessOverlay({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
               >
-                <p className="text-sm text-white/60 mb-2">Auto-closing in a moment...</p>
+                <p className="text-sm text-white/60 mb-2">{t('autoClosing')}</p>
                 <div className="h-1 bg-white/20 rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-white/60 rounded-full"

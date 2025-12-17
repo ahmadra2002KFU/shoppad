@@ -7,13 +7,22 @@ export async function GET() {
       orderBy: { category: 'asc' },
     })
 
-    // Get unique categories
-    const categories = [...new Set(products.map((p) => p.category))]
+    // Get unique categories with their Arabic translations
+    const categoryMap = new Map<string, string>()
+    products.forEach((p) => {
+      if (!categoryMap.has(p.category)) {
+        categoryMap.set(p.category, p.categoryAr || p.category)
+      }
+    })
+
+    const categories = [...categoryMap.keys()]
+    const categoryTranslations = Object.fromEntries(categoryMap)
 
     return NextResponse.json({
       success: true,
       count: products.length,
       categories,
+      categoryTranslations,
       data: products,
     })
   } catch (error) {

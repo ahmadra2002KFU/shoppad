@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import dynamic from 'next/dynamic'
 import type { MapModalProps } from '@/types/map'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 // Dynamic import for SupermarketMap to avoid SSR issues with Three.js
 const SupermarketMap = dynamic(
@@ -18,7 +19,7 @@ const SupermarketMap = dynamic(
       <div className="w-full h-full flex items-center justify-center bg-gray-100">
         <div className="text-center">
           <div className="text-4xl mb-3">🛒</div>
-          <p className="text-gray-600 font-medium">Loading Store Map...</p>
+          <p className="text-gray-600 font-medium">Loading...</p>
         </div>
       </div>
     ),
@@ -26,6 +27,7 @@ const SupermarketMap = dynamic(
 )
 
 export function MapModal({ open, onOpenChange }: MapModalProps) {
+  const { t } = useLanguage()
   // Detect if mobile screen size (using window.matchMedia for consistency with Tailwind's sm breakpoint)
   const [isMobile, setIsMobile] = React.useState(false)
 
@@ -95,10 +97,10 @@ export function MapModal({ open, onOpenChange }: MapModalProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <Dialog.Title className="text-lg font-semibold">
-                        Store Directory
+                        {t('storeDirectory')}
                       </Dialog.Title>
                       <Dialog.Description className="text-sm text-muted-foreground">
-                        Drag to rotate, pinch to zoom, tap sections for offers
+                        {t('mapInstructions')}
                       </Dialog.Description>
                     </div>
                     <Dialog.Close asChild>

@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { SECTIONS } from './map-data'
 import type { Section, SupermarketMapProps } from '@/types/map'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface MeshRef {
   group: THREE.Group
@@ -16,10 +17,10 @@ export function SupermarketMap({
   onSectionSelect,
   selectedSection: externalSelectedSection,
   onHoverChange,
-  showSectionButtons = true,
   showZoomControls = true,
   className,
 }: SupermarketMapProps) {
+  const { t, isRTL } = useLanguage()
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<THREE.Scene | null>(null)
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
@@ -490,14 +491,6 @@ export function SupermarketMap({
   }, [handleNativeTouchStart, handleNativeTouchMove, handleNativeTouchEnd])
 
 
-  const handleSectionButtonClick = useCallback((section: Section) => {
-    if (onSectionSelect) {
-      onSectionSelect(section)
-    } else {
-      setInternalSelectedSection(section)
-    }
-  }, [onSectionSelect])
-
   const handleCloseDetails = useCallback(() => {
     if (onSectionSelect) {
       onSectionSelect(null)
@@ -523,24 +516,6 @@ export function SupermarketMap({
         // to allow preventDefault() and block browser's default touch behaviors
       />
 
-      {/* Section Labels */}
-      {isLoaded && showSectionButtons && (
-        <div className="absolute bottom-20 left-4 right-4 z-10">
-          <div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
-            {SECTIONS.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => handleSectionButtonClick(section)}
-                className="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm min-h-[44px]"
-                style={{ backgroundColor: section.color }}
-              >
-                {section.icon} {section.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Hovered Section Indicator */}
       {hoveredSection && !selectedSection && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
@@ -548,7 +523,7 @@ export function SupermarketMap({
             className="px-4 py-2 rounded-lg text-white font-medium shadow-lg text-sm"
             style={{ backgroundColor: SECTIONS.find(s => s.id === hoveredSection)?.color }}
           >
-            {SECTIONS.find(s => s.id === hoveredSection)?.icon} Tap to view offers
+            {SECTIONS.find(s => s.id === hoveredSection)?.icon} {t('tapToViewOffers')}
           </div>
         </div>
       )}
@@ -572,7 +547,7 @@ export function SupermarketMap({
                 <span className="text-3xl">{selectedSection.icon}</span>
                 <div>
                   <h2 className="text-xl font-semibold">{selectedSection.name}</h2>
-                  <p className="text-white/80 text-sm">Today's Special Offers</p>
+                  <p className="text-white/80 text-sm">{t('todaysSpecialOffers')}</p>
                 </div>
               </div>
             </div>
@@ -604,7 +579,7 @@ export function SupermarketMap({
                 onClick={handleCloseDetails}
                 className="w-full py-3 rounded-xl font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors min-h-[48px]"
               >
-                Close
+                {t('close')}
               </button>
             </div>
           </div>
@@ -613,7 +588,7 @@ export function SupermarketMap({
 
       {/* Zoom Controls */}
       {showZoomControls && (
-        <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
+        <div className={`absolute bottom-4 z-10 flex flex-col gap-2 ${isRTL ? 'left-4' : 'right-4'}`}>
           <button
             onClick={handleZoomIn}
             className="w-12 h-12 rounded-lg bg-white text-gray-700 text-xl font-medium hover:bg-gray-50 transition-colors shadow-md border border-gray-200 flex items-center justify-center"
@@ -636,7 +611,7 @@ export function SupermarketMap({
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div className="text-center">
             <div className="text-4xl mb-3">🛒</div>
-            <p className="text-gray-600 font-medium">Loading Store Map...</p>
+            <p className="text-gray-600 font-medium">{t('loadingStoreMap')}</p>
           </div>
         </div>
       )}
